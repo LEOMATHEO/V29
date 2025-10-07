@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>⚡ ROSELY v29 — Tabela vazia (estilo v24) + Sugestão e ETA</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f172a">
+  <style>
+    :root { --bg:#f8fafc; --fg:#0f172a; --muted:#475569; --card:#ffffff; --bd:#e2e8f0; --blue:#0ea5e9; --green:#16a34a; --violet:#7c3aed; --red:#ef4444; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; background:var(--bg); color:var(--fg);}
+    .wrap { max-width: 1200px; margin: auto; padding:16px;}
+    .card { background:var(--card); border-radius:14px; padding:14px; margin:10px 0; box-shadow:0 2px 6px rgba(0,0,0,.08); border:1px solid var(--bd);}
+    label{font-weight:600; display:block; margin-top:6px;}
+    input,select,button{padding:10px; margin-top:4px;}
+    input,select{width:100%; border:1px solid #cbd5e1; border-radius:10px;}
+    table{width:100%; border-collapse:collapse; margin-top:10px; font-size:13px; background:#fff;}
+    th,td{border-bottom:1px solid #e2e8f0; padding:6px; text-align:center;}
+    thead th{background:#f1f5f9;}
+    .ok{background:#dcfce7; color:#166534; border-radius:6px; padding:6px 8px; display:inline-block; margin-top:6px;}
+    .btn{border:none; border-radius:10px; background:var(--blue); color:#fff; cursor:pointer;}
+    .btn.extra{background:var(--green);}
+    .btn.undo{background:var(--red);}
+    .btn.reset{background:var(--violet);}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr;} }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    .pill { background:#f1f5f9; padding:8px 10px; border-radius:999px; border:1px solid var(--bd); font-weight:600; color:#0f172a; }
+    .banner { background:#e0f2fe; border:1px solid #bae6fd; color:#075985; padding:10px 12px; border-radius:10px; font-weight:700; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚡ ROSELY v29 — <small style="font-size:14px;color:#475569">Tabela estilo v24, vazia + sugestão (50m) + tempo estimado</small></h1>
+
+  <div class="banner" id="etaBanner">Tempo estimado para quitação: — meses (— anos e — meses)</div>
+
+  <div class="grid">
+    <div class="card">
+      <label>Saldo devedor atual (R$)</label>
+      <input id="saldo" type="number" step="0.01" value="251676.44">
+
+      <label>Taxa efetiva anual</label>
+      <input id="taxaEfetiva" type="number" step="0.0001" value="0.0979">
+
+      <label>Valor da parcela (A+J)</label>
+      <input id="valorParcela" type="number" step="0.01" value="3772.02">
+
+      <label>Data do lançamento</label>
+      <input id="dataLanc" type="date" value="2025-10-07">
+    </div>
+
+    <div class="card">
+      <label>Valor de amortização extra (R$)</label>
+      <input id="valorExtra" type="number" step="0.01" value="0">
+
+      <label>Valor sugerido (quitar em 50 meses) — automático</label>
+      <input id="valorSugerido50" type="number" step="0.01" value="0" readonly>
+
+      <label>Tipo de amortização</label>
+      <select id="tipoExtra">
+        <option value="mensal">Mensal (deste mês)</option>
+        <option value="pontual">Pontual (pela data)</option>
+      </select>
+
+      <div class="row" style="margin-top:8px">
+        <button class="btn" onclick="confirmarParcela()">🧾 Confirmar parcela</button>
+        <button class="btn extra" onclick="confirmarExtra()">➕ Confirmar amortização</button>
+        <button class="btn undo" onclick="desfazerUltimo()">↩️ Desfazer último</button>
+        <button class="btn reset" onclick="resetar()">🔄 Resetar planilha</button>
+        <button class="btn" onclick="exportarCSV()">📤 Exportar CSV</button>
+      </div>
+      <div id="msg" class="ok" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div class="pill">Parcelas registradas: <span id="r_parcelas">0</span></div>
+      <div class="pill">Extras pagos: <span id="r_extras">R$ 0,00</span></div>
+      <div class="pill">Juros pagos: <span id="r_juros">R$ 0,00</span></div>
+      <div class="pill">Total amortizado: <span id="r_amort">R$ 0,00</span></div>
+      <div class="pill">Saldo atual: <span id="r_saldo">R$ 0,00</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Data</th>
+          <th>Prestação</th>
+          <th>Extra Mensal</th>
+          <th>Extra Pontual</th>
+          <th>Juros</th>
+          <th>Amortização</th>
+          <th>Total Amortizado</th>
+          <th>Saldo</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="pill">Saldo devedor atualizado: <span id="saldoOut">R$ 0,00</span></div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+  }
+</script>
+</body>
+</html>
